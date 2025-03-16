@@ -1,6 +1,6 @@
 import json
-import xml.etree.ElementTree as ET
 from typing import Protocol
+import xml.etree.ElementTree as ET
 
 
 class DisplayStrategy(Protocol):
@@ -56,7 +56,7 @@ class XMLSerialize(SerializeStrategy):
 
 
 class Book:
-    def __init__(self, title: str, content: str) -> None:
+    def __init__(self, title: str, content: str):
         self.title = title
         self.content = content
 
@@ -70,31 +70,43 @@ class Book:
         return strategy.serialize(self.title, self.content)
 
 
-class CommandHandler:
-    def __init__(self, book: Book) -> None:
-        self.book = book
-        self.display_strategies = {
-            "console": ConsoleDisplay(),
-            "reverse": ReverseDisplay(),
-        }
-        self.print_strategies = {
-            "console": ConsolePrint(),
-            "reverse": ReversePrint(),
-        }
-        self.serialize_strategies = {
-            "json": JSONSerialize(),
-            "xml": XMLSerialize(),
-        }
+class DisplayHandler:
+    strategies = {
+        "console": ConsoleDisplay(),
+        "reverse": ReverseDisplay(),
+    }
 
-    def execute(self, command: str, method_type: str) -> str | None:
-        if command == "display" and method_type in self.display_strategies:
-            self.book.display(self.display_strategies[method_type])
-        elif command == "print" and method_type in self.print_strategies:
-            self.book.print_book(self.print_strategies[method_type])
-        elif (command == "serialize" and method_type
-              in self.serialize_strategies):
-            return self.book.serialize(self.serialize_strategies[method_type])
+    @staticmethod
+    def execute(book: Book, method_type: str) -> None:
+        if method_type in DisplayHandler.strategies:
+            book.display(DisplayHandler.strategies[method_type])
         else:
-            raise ValueError(
-                f"Unknown command or method type: {command}, {method_type}"
-            )
+            raise ValueError(f"Unknown display method: {method_type}")
+
+
+class PrintHandler:
+    strategies = {
+        "console": ConsolePrint(),
+        "reverse": ReversePrint(),
+    }
+
+    @staticmethod
+    def execute(book: Book, method_type: str) -> None:
+        if method_type in PrintHandler.strategies:
+            book.print_book(PrintHandler.strategies[method_type])
+        else:
+            raise ValueError(f"Unknown print method: {method_type}")
+
+
+class SerializeHandler:
+    strategies = {
+        "json": JSONSerialize(),
+        "xml": XMLSerialize(),
+    }
+
+    @staticmethod
+    def execute(book: Book, method_type: str) -> str:
+        if method_type in SerializeHandler.strategies:
+            return book.serialize(SerializeHandler.strategies[method_type])
+        else:
+            raise ValueError(f"Unknown serialize method: {method_type}")

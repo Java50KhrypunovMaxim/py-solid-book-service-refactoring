@@ -1,13 +1,17 @@
-from app.book import Book, CommandHandler
+from app.book import Book, DisplayHandler, PrintHandler, SerializeHandler
 
 
 def main(book: Book, commands: list[tuple[str, str]]) -> None | str:
-    handler = CommandHandler(book)
     result = None
     for cmd, method_type in commands:
-        output = handler.execute(cmd, method_type)
-        if output:
-            result = output
+        if cmd == "display":
+            DisplayHandler.execute(book, method_type)
+        elif cmd == "print":
+            PrintHandler.execute(book, method_type)
+        elif cmd == "serialize":
+            result = SerializeHandler.execute(book, method_type)
+        else:
+            raise ValueError(f"Unknown command: {cmd}")
     return result
 
 
